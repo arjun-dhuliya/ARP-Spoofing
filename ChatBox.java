@@ -20,7 +20,7 @@ public class ChatBox {
     /***
      *
      */
-    public ChatBox() {
+    ChatBox() {
         messages = "";
         initGUI();
     }
@@ -76,7 +76,7 @@ public class ChatBox {
     /***
      *
      */
-    private void showEventDemo() {
+    public void showEventDemo() {
         headerLabel.setText("Messages");
 
         JButton sendButton = new JButton("Send");
