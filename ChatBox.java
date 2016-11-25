@@ -9,7 +9,7 @@ import java.awt.event.WindowEvent;
  *
  */
 public class ChatBox {
-    String messages;
+    String allMessageText;
     private JFrame mainFrame;
     private JLabel headerLabel;
     private JLabel statusLabel;
@@ -21,8 +21,9 @@ public class ChatBox {
      *
      */
     ChatBox() {
-        messages = "";
+        allMessageText = "";
         initGUI();
+        setButtonsAndEvents();
     }
 
     /***
@@ -31,7 +32,6 @@ public class ChatBox {
      */
     public static void main(String[] args) {
         ChatBox swingControlDemo = new ChatBox();
-        swingControlDemo.showEventDemo();
     }
 
     /***
@@ -76,7 +76,7 @@ public class ChatBox {
     /***
      *
      */
-    public void showEventDemo() {
+    public void setButtonsAndEvents() {
         headerLabel.setText("Messages");
 
         JButton sendButton = new JButton("Send");
@@ -108,14 +108,18 @@ public class ChatBox {
             String command = e.getActionCommand();
             switch (command) {
                 case "send":
-                    statusLabel.setText("Sent Message: " + textArea.getText());
-                    messages += "\nyou:" + textArea.getText();
-                    list.setText(messages);
-                    textArea.setText("");
-                    sendMessage();
+                    if (textArea.getText().length() > 0) {
+                        statusLabel.setText("Sent Message: " + textArea.getText());
+                        allMessageText += "\nyou:" + textArea.getText();
+                        list.setText(allMessageText);
+                        textArea.setText("");
+                        sendMessage();
+                    } else {
+                        statusLabel.setText("Type Something before hitting send");
+                    }
                     break;
                 case "refresh":
-                    list.setText(messages);
+                    list.setText(allMessageText);
                     textArea.setText("");
                     break;
             }

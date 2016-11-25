@@ -9,6 +9,5 @@ public class User {
      */
     public static void main(String args[]) {
         ChatBox c = new ChatBox();
-        c.showEventDemo();
     }
 }
