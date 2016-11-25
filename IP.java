@@ -2,9 +2,9 @@
  *
  */
 public class IP {
-    private String ip;
-    private int[] octets;
-    private boolean binary[];
+    private final String ip;
+    private final int[] octets;
+    private final boolean[] binary;
     private boolean binaryString[];
 
     /***

@@ -9,14 +9,14 @@ import java.awt.event.WindowEvent;
  *
  */
 public class ChatBox {
-    String allMessageText;
+    private final Object LOCK = new Object();
+    private String allMessageText;
     private JFrame mainFrame;
     private JLabel headerLabel;
     private JLabel statusLabel;
     private JPanel controlPanel;
     private JTextArea textArea;
     private JTextArea list;
-
     /***
      *
      */
@@ -31,7 +31,23 @@ public class ChatBox {
      * @param args
      */
     public static void main(String[] args) {
-        ChatBox swingControlDemo = new ChatBox();
+        new ChatBox();
+    }
+
+    /***
+     *
+     * @param allMessageText
+     */
+    public void updateMessagesText(String allMessageText) {
+        synchronized (LOCK) {
+            this.allMessageText = allMessageText;
+        }
+    }
+
+    public void setListText(String allMessageText) {
+        synchronized (LOCK) {
+            this.list.setText(allMessageText);
+        }
     }
 
     /***
@@ -110,8 +126,8 @@ public class ChatBox {
                 case "send":
                     if (textArea.getText().length() > 0) {
                         statusLabel.setText("Sent Message: " + textArea.getText());
-                        allMessageText += "\nyou:" + textArea.getText();
-                        list.setText(allMessageText);
+                        updateMessagesText("\nyou:" + textArea.getText());
+                        setListText(allMessageText);
                         textArea.setText("");
                         sendMessage();
                     } else {
@@ -119,7 +135,7 @@ public class ChatBox {
                     }
                     break;
                 case "refresh":
-                    list.setText(allMessageText);
+                    setListText(allMessageText);
                     textArea.setText("");
                     break;
             }
