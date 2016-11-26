@@ -85,10 +85,10 @@ public class ChatBox {
         JLabel gapLabel = new JLabel("", JLabel.CENTER);
         statusLabel = new JLabel("", JLabel.CENTER);
         textArea = new JTextArea("Sample Text");
-        DefaultCaret caret = (DefaultCaret) textArea.getCaret();
-        caret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
         list = new JTextArea();
         JScrollPane scroll = new JScrollPane(list);
+        DefaultCaret caret = (DefaultCaret) list.getCaret();
+        caret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
 
 
         gapLabel.setSize(320, 10);
@@ -159,11 +159,11 @@ public class ChatBox {
      * @param text
      */
     private void sendMessage(String text) {
-        byte[] bytes = text.getBytes();
-        InetAddress inetAddress = null;
+        byte[] bytes = new byte[text.length() + 1];
+        text.getBytes(0, text.length(), bytes, 1);
+        InetAddress inetAddress;
         try {
             inetAddress = InetAddress.getByName(ip);
-
             DatagramPacket p = new DatagramPacket(bytes, bytes.length, inetAddress, port);
             sendingSocket.send(p);
         } catch (IOException e) {

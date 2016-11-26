@@ -51,11 +51,22 @@ public class Router {
                     byte[] data = p.getData();
                     if (data[0] == 1) {
                         ArpPacketAnalyzer.analyzePacket(bytes, p.getLength());
+                    } else {
+                        forwardMessage(p.getData(), p.getLength());
                     }
                 }
             } catch (IOException e) {
                 e.printStackTrace();
             }
+
+        }
+
+        /***
+         *
+         * @param data
+         * @param length
+         */
+        private void forwardMessage(byte[] data, int length) {
 
         }
     }
