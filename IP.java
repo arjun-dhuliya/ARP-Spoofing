@@ -48,6 +48,19 @@ public class IP {
         }
         return bits;
     }
+    
+    /***
+     * 
+     * @param bytes
+     */
+    public static String byteToString(byte[] bytes){
+    	StringBuilder sb = new StringBuilder();
+    	for(int i =0;i<bytes.length;i++){
+    		sb.append(bytes[i]).append('.');
+    	}
+    	sb.deleteCharAt(sb.length()-1);
+    	return sb.toString();
+    }
 
     /***
      *
