@@ -27,6 +27,8 @@ import javax.swing.text.DefaultCaret;
  */
 public class ChatBox {
 	private final Object LOCK = new Object();
+	private String Router_IP;
+	private int Router_Port;
 	private String allMessageText;
 	private JFrame mainFrame;
 	private JLabel headerLabel;
@@ -39,15 +41,12 @@ public class ChatBox {
 	private String ip;
 	private int port;
 	private DatagramSocket sendingSocket;
-	private String Router_IP;
-	private int Router_Port;
+
 
 	/***
 	 *
 	 */
-	ChatBox(String IP, int Port) {
-		this.Router_IP = IP;
-		this.Router_Port = Port;
+	ChatBox() {
 		allMessageText = "";
 		initGUI();
 		setButtonsAndEvents();
@@ -263,6 +262,8 @@ public class ChatBox {
 		 * @throws Exception
 		 */
 		public void send_arp_init_msg(DatagramSocket arp_init) throws Exception {
+			Router_IP = User.default_gateway.get("192.168.1.1").Router_IP;
+			Router_Port = User.default_gateway.get("192.168.1.1").Router_Port;
 			InetAddress inetAddress = InetAddress.getByName(Router_IP);
 			ArpPacket init_pkt = new ArpPacket(
 					NetworkInterface.getByInetAddress(InetAddress.getLocalHost()).getHardwareAddress(),

@@ -11,6 +11,7 @@ public class ArpPacket {
     byte[] SPA = new byte[4];       //Sender protocol address field of Arp packet
     byte[] THA = new byte[6];       //Sender hardware address field of Arp packet
     byte[] TPA = new byte[4];       //IP addr
+    int PortNumber;
 
     /***
      * Constructor
@@ -49,7 +50,8 @@ public class ArpPacket {
                 "SHA:" + arrayToHexString(this.SHA, '.') + ",\n" +
                 "SPA:" + arrayToDecimalString(this.SPA) + ",\n" +
                 "THA:" + arrayToHexString(this.THA, '.') + ",\n" +
-                "TPA:" + arrayToDecimalString(this.TPA) + ",\n";
+                "TPA:" + arrayToDecimalString(this.TPA) + ",\n"+
+                "Port:" + this.PortNumber;
     }
 
     /***
