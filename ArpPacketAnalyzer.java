@@ -43,7 +43,7 @@ public class ArpPacketAnalyzer {
         data[6] = (byte) obj.protocolAddresslength;
         data[7] = (byte) ((obj.operation >> 8) & 0xFF);
         data[8] = (byte) (obj.operation & 0xFF);
-        int current = 8;
+        int current = 9;
         current = storeIntoArray(data, obj.SHA, current);
         current = storeIntoArray(data, obj.SPA, current);
         current = storeIntoArray(data, obj.THA, current);

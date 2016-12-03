@@ -34,6 +34,7 @@ public class Router {
 					}
 					if (ARP_TABLE.size() > 0) {
 						StringBuffer sb = new StringBuffer();
+						System.out.println("ROUTING TABLE: -");
 						for (String key : ARP_TABLE.keySet()) {
 							sb.append(key + " -- " + ARP_TABLE.get(key) + "\n");
 						}
@@ -70,6 +71,7 @@ public class Router {
 					byte[] bytes = new byte[1024];
 					DatagramPacket p = new DatagramPacket(bytes, bytes.length);
 					socket.receive(p);
+					System.out.println("Received initialization msg from: " + p.getAddress());
 					byte[] data = p.getData();
 					if (data[0] == 0) {
 						ArpPacket Arp_pkt = ArpPacketAnalyzer.analyzePacket(bytes, p.getLength());

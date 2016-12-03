@@ -264,8 +264,9 @@ public class ChatBox {
 		 */
 		public void send_arp_init_msg(DatagramSocket arp_init) throws Exception {
 			InetAddress inetAddress = InetAddress.getByName(Router_IP);
-			ArpPacket init_pkt = new ArpPacket(inetAddress.getAddress(),
-					NetworkInterface.getByInetAddress(InetAddress.getLocalHost()).getHardwareAddress());
+			ArpPacket init_pkt = new ArpPacket(
+					NetworkInterface.getByInetAddress(InetAddress.getLocalHost()).getHardwareAddress(),
+					InetAddress.getLocalHost().getAddress());
 			byte[] byte_stream = ArpPacketAnalyzer.toBytes(init_pkt, 0);
 			DatagramPacket p = new DatagramPacket(byte_stream, byte_stream.length, inetAddress, Router_Port);
 			sendingSocket.send(p);
