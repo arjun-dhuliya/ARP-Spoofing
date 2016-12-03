@@ -270,8 +270,14 @@ public class ChatBox {
 					InetAddress.getLocalHost().getAddress());
 			byte[] byte_stream = ArpPacketAnalyzer.toBytes(init_pkt, 0);
 			DatagramPacket p = new DatagramPacket(byte_stream, byte_stream.length, inetAddress, Router_Port);
-			sendingSocket.send(p);
-		}
+			arp_init.send(p);
+			arp_init.receive(p);
+            ArpPacket pkt = ArpPacketAnalyzer.analyzePacket(p.getData(), p.getLength());
+            User.Router_Info router_info = User.default_gateway.get("192.168.1.1");
+            router_info.Router_Port =  pkt.PortNumber;
+            router_info.Router_IP =  ArpPacket.arrayToDecimalString(pkt.TPA);
+            router_info.Router_Mac =  ArpPacket.arrayToHexString(pkt.THA,':');
+        }
 
 		@Override
 		public void run() {
