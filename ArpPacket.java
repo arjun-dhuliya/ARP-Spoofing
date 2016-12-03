@@ -2,17 +2,21 @@
  *
  */
 public class ArpPacket {
-    int hardwareType;
-    int protocolType;
-    int hardwareAddressLength;
-    int protocolAddresslength;
-    int operation;
-    byte[] SHA = new byte[6];//Sender hardware addr
-    byte[] SPA = new byte[4];//IP addr
-    byte[] THA = new byte[6];//Target hw addr
-    byte[] TPA = new byte[4];//IP addr
-    
-    
+    int hardwareType;               //hardware type field of Arp Packet
+    int protocolType;               //protocol type field of Arp Packet
+    int hardwareAddressLength;      //hardware Address length field of Arp Packet
+    int protocolAddresslength;      //protocol address length field of Arp Packet
+    int operation;                  // operation field of Arp packet
+    byte[] SHA = new byte[6];       //Sender hardware address field of Arp packet
+    byte[] SPA = new byte[4];       //Sender protocol address field of Arp packet
+    byte[] THA = new byte[6];       //Sender hardware address field of Arp packet
+    byte[] TPA = new byte[4];       //IP addr
+
+    /***
+     * Constructor
+     * @param SHA, Sender hardware address
+     * @param SPA, Sender Protocol address
+     */
     public ArpPacket(byte[] SHA, byte[] SPA) {
     	this.hardwareType = 1;
     	this.protocolType = 800;
@@ -22,14 +26,17 @@ public class ArpPacket {
 		this.SHA = SHA;
 		this.SPA = SPA;
 	}
-    
+
+    /***
+     * Constructor
+     */
     public ArpPacket() {
-		// TODO Auto-generated constructor stub
+
 	}
 
     /***
-     *
-     * @return
+     * String representation of Arp packet
+     * @return String representation of Arp packet
      */
     @Override
     public String toString() {
@@ -46,9 +53,9 @@ public class ArpPacket {
     }
 
     /***
-     *
-     * @param bytes
-     * @return
+     * provided with a array convert to a string with '.' separation
+     * @param bytes, byte array
+     * @return String value '.' separated
      */
     public static String arrayToDecimalString(byte[] bytes) {
         StringBuilder sb = new StringBuilder();
@@ -62,9 +69,9 @@ public class ArpPacket {
     }
 
     /***
-     *
-     * @param bytes
-     * @return
+     * provided with a array convert to a hex string with '.' separation
+     * @param bytes, byte array
+     * @return string value
      */
     public static String arrayToHexString(byte[] bytes, char delimeter) {
         StringBuilder sb = new StringBuilder();

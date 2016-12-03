@@ -291,7 +291,7 @@ public class ChatBox {
 					msg += new String(p.getData(), 0, p.getLength());
 					updateMessagesText(msg);
 				}
-			} catch (java.io.IOException e) {
+			} catch (IOException e) {
 				e.printStackTrace();
 			}
 
