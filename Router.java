@@ -4,14 +4,16 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.UnknownHostException;
-import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
 
 /***
  *
  */
 public class Router {
 
-	static HashMap<String, String[]> ARP_TABLE = new HashMap<>();
+	static LinkedHashMap<String, String[]> ARP_TABLE = new LinkedHashMap<>();
+	static HashSet<String> ARP_IPs = new HashSet<>();
 	static String IP = "";
 	static String Port = "";
 	static String MAC = "";
@@ -44,8 +46,9 @@ public class Router {
 			e.printStackTrace();
 		}
 		ARP_TABLE.put("192.168.1.1", IP_MAC_Port);
-		System.out.println("Router initialized!\nIP, Port, MAC :" + IP_MAC_Port[0] + " " + IP_MAC_Port[2] + " "
-				+ IP_MAC_Port[1]);
+		ARP_IPs.add(IP_MAC_Port[0]);
+		System.out.println(
+				"Router initialized!\nIP, Port, MAC :" + IP_MAC_Port[0] + " " + IP_MAC_Port[2] + " " + IP_MAC_Port[1]);
 		ListeningThread listeningThread = new ListeningThread();
 		new Thread(listeningThread).start();
 		new Thread(new Runnable() {
@@ -70,7 +73,7 @@ public class Router {
 				}
 			}
 		}).start();
-		
+
 		Thread updater = new Thread(new Runnable() {
 
 			DatagramSocket updater_socket = new DatagramSocket();
@@ -84,7 +87,8 @@ public class Router {
 				InetAddress inetAddress;
 				try {
 					inetAddress = InetAddress.getByName(IP);
-					DatagramPacket p = new DatagramPacket(byte_stream, byte_stream.length, inetAddress, Integer.parseInt(Port));
+					DatagramPacket p = new DatagramPacket(byte_stream, byte_stream.length, inetAddress,
+							Integer.parseInt(Port));
 					updater_socket.send(p);
 				} catch (IOException e) {
 					e.printStackTrace();
@@ -105,7 +109,7 @@ public class Router {
 				}
 			}
 		});
-//		updater.start();
+		// updater.start();
 	}
 
 	/***
@@ -126,14 +130,16 @@ public class Router {
 			InetAddress inetAddress;
 			try {
 				inetAddress = InetAddress.getByName(IP);
-				DatagramPacket p = new DatagramPacket(byte_stream, byte_stream.length, inetAddress, Integer.parseInt(Port));
+				DatagramPacket p = new DatagramPacket(byte_stream, byte_stream.length, inetAddress,
+						Integer.parseInt(Port));
 				Send_socket.send(p);
+				System.out.println("Msg sent to " + IP + " " + Port);
+				System.out.println(p.toString());
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
 		}
-		
-		
+
 		/***
 		 *
 		 */
@@ -147,24 +153,30 @@ public class Router {
 					DatagramPacket p = new DatagramPacket(bytes, bytes.length);
 					Listen_socket.receive(p);
 					byte[] data = p.getData();
-					if (data[0] == 0) {						
+					if (data[0] == 0) {
 						ArpPacket Arp_pkt = ArpPacketAnalyzer.analyzePacket(bytes, p.getLength());
 						IP_MAC_Port[0] = ArpPacket.arrayToDecimalString(Arp_pkt.SPA);
 						System.out.println("Received initialization msg from: " + IP_MAC_Port[0]);
 						IP_MAC_Port[1] = ArpPacket.arrayToHexString(Arp_pkt.SHA, ':');
 						IP_MAC_Port[2] = p.getPort() + "";
-						ARP_TABLE.put("192.168.1." + (ARP_Table_size + 1), IP_MAC_Port);
-						StringBuffer sb = new StringBuffer();
-						System.out.println("Routing table updated..");
-						for (String key : ARP_TABLE.keySet()) {
-							String[] value = ARP_TABLE.get(key);
-							sb.append(key + " -- " + value[0] + " " + value[1] + " " + value[2] + "\n");
+						if (!ARP_IPs.contains(IP_MAC_Port[0])) {
+							ARP_TABLE.put("192.168.1." + (ARP_Table_size + 1), IP_MAC_Port);
+							ARP_IPs.add(IP_MAC_Port[0]);
+							StringBuffer sb = new StringBuffer();
+							System.out.println("Routing table updated..");
+							for (String key : ARP_TABLE.keySet()) {
+								String[] value = ARP_TABLE.get(key);
+								sb.append(key + " -- " + value[0] + " " + value[1] + " " + value[2] + "\n");
+							}
+							System.out.println(sb.toString() + "\n");
+							ArpPacket response = new ArpPacket();
+							response.THA = MAC_b;
+							response.TPA = IP_b;
+							response.PortNumber = Integer.parseInt(Port);
+							sendMessage(response, IP_MAC_Port[0], IP_MAC_Port[2]);
+							sendMessage(response, p.getAddress().getHostAddress(), p.getPort() + "");
 						}
-						System.out.println(sb.toString() + "\n");
-						ArpPacket response = new ArpPacket();
-						response.THA = MAC_b;
-						response.TPA = IP_b;
-						sendMessage(response, IP_MAC_Port[0], IP_MAC_Port[2]);
+
 					} else if (data[0] == 1) {
 						ArpPacketAnalyzer.analyzePacket(bytes, p.getLength());
 					} else {
