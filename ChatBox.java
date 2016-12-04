@@ -277,6 +277,7 @@ public class ChatBox {
             router_info.Router_Port =  pkt.PortNumber;
             router_info.Router_IP =  ArpPacket.arrayToDecimalString(pkt.TPA);
             router_info.Router_Mac =  ArpPacket.arrayToHexString(pkt.THA,':');
+            System.out.println("Received:\n"+pkt);
         }
 
 		@Override
