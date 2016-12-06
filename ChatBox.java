@@ -339,7 +339,7 @@ public class ChatBox {
 					socket.receive(p);
 					String msg;
 					msg = bytesToIp(p.getData(),1)+": ";
-					msg += new String(p.getData(), 0, p.getLength());
+					msg += new String(p.getData(), 5, p.getLength());
 					updateMessagesText(msg);
 				}
 			} catch (IOException e) {
