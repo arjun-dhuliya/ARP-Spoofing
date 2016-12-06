@@ -26,6 +26,7 @@ public class ArpPacketAnalyzer {
         System.arraycopy(bytes, current, info.TPA, 0, 4);
         current+=info.protocolAddresslength;
         info.PortNumber = ((bytes[current++] & 0xff) << 8) | (bytes[current++] & 0xff);
+        System.arraycopy(bytes, current, info.SLPA, 0, 4);
         return info;
     }
 
@@ -35,7 +36,7 @@ public class ArpPacketAnalyzer {
      * @return
      */
     public static byte[] toBytes(ArpPacket obj, int mode) {
-        byte[] data = new byte[31];
+        byte[] data = new byte[35];
         int current = 0;
         data[current++] = (byte) mode;
         data[current++] = (byte) ((obj.hardwareType >> 8) & 0xFF);
@@ -51,7 +52,8 @@ public class ArpPacketAnalyzer {
         current = storeIntoArray(data, obj.THA, current);
         current = storeIntoArray(data, obj.TPA, current);
         data[current++] = (byte) ((obj.PortNumber >> 8) & 0xFF);
-        data[current] = (byte) (obj.PortNumber & 0xFF);
+        data[current++] = (byte) (obj.PortNumber & 0xFF);
+        current = storeIntoArray(data,obj.SLPA,current);
         return data;
     }
 
