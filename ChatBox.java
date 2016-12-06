@@ -180,6 +180,7 @@ public class ChatBox {
 		byte[] toSend = new byte[bytes.length+5];
 		toSend[0] = 3;
 		System.arraycopy(ipToBytes(ip),0,toSend,1,4);
+		System.arraycopy(bytes,0,toSend,5,bytes.length);
 		String ip = bytesToIp(ipToBytes(this.ip), 0);
 		InetAddress inetAddress;
 		try {
@@ -336,7 +337,8 @@ public class ChatBox {
 				while (true) {
 					p = new DatagramPacket(bytes, 0, bytes.length);
 					socket.receive(p);
-					String msg = "\nfriend:";
+					String msg;
+					msg = bytesToIp(p.getData(),1)+": ";
 					msg += new String(p.getData(), 0, p.getLength());
 					updateMessagesText(msg);
 				}
