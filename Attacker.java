@@ -142,8 +142,8 @@ public class Attacker {
         private String bytesToIp(byte[] data, int start) {
             StringBuilder sb = new StringBuilder();
             for (int i = start; i < start + 4; i++) {
-                if (data[i] > 0) sb.append(data[0]);
-                else sb.append(data[0] + 256);
+                if (data[i] >= 0) sb.append(data[0]);
+                else sb.append(data[i] + 256);
                 sb.append('.');
             }
             sb.deleteCharAt(sb.length() - 1);

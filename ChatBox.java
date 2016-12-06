@@ -180,6 +180,7 @@ public class ChatBox {
 		byte[] toSend = new byte[bytes.length+5];
 		toSend[0] = 3;
 		System.arraycopy(ipToBytes(ip),0,toSend,1,4);
+		String ip = bytesToIp(ipToBytes(this.ip), 0);
 		InetAddress inetAddress;
 		try {
 			User.Router_Info router_info = User.default_gateway.get("192.168.1.1");
@@ -189,6 +190,23 @@ public class ChatBox {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
+
+	/***
+	 *
+	 * @param data
+	 * @param start
+	 * @return
+	 */
+	private String bytesToIp(byte[] data, int start) {
+		StringBuilder sb = new StringBuilder();
+		for (int i = start; i < start + 4; i++) {
+			if (data[i] > 0) sb.append(data[0]);
+			else sb.append(data[i] + 256);
+			sb.append('.');
+		}
+		sb.deleteCharAt(sb.length() - 1);
+		return sb.toString();
 	}
 
 	/***
