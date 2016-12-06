@@ -5,12 +5,12 @@ import java.util.HashMap;
  */
 public class User {
 
-    static HashMap<String, Router_Info> default_gateway;
+    static HashMap<String, Router_Info> default_gateway;    // User has a default gateway to communicate
 
 
     /***
-     *
-     * @param args, command line arguments are ignored
+     * instantiates a user
+     * @param args, router ip and router port number are passed as paramteres to program
      */
     public static void main(String args[]) {
         default_gateway = new HashMap<>();
@@ -24,7 +24,7 @@ public class User {
 
 
     /***
-     *
+     * Class representation of Router info
      */
     static class Router_Info{
         String Router_IP;
@@ -33,11 +33,11 @@ public class User {
 
         /***
          *
-         * @param router_IP
-         * @param router_Port
-         * @param router_Mac
+         * @param router_IP, ip
+         * @param router_Port, port
+         * @param router_Mac, mac address
          */
-        public Router_Info(String router_IP, int router_Port, String router_Mac) {
+        Router_Info(String router_IP, int router_Port, String router_Mac) {
             Router_IP = router_IP;
             Router_Port = router_Port;
             Router_Mac = router_Mac;

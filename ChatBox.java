@@ -177,14 +177,37 @@ public class ChatBox {
 		byte[] bytes = new byte[text.length() + 1];
 		// text.getBytes(0, text.length(), bytes, 1);
 		bytes = text.getBytes();
+		byte[] toSend = new byte[bytes.length+5];
+		toSend[0] = 3;
+		System.arraycopy(ipToBytes(ip),0,toSend,1,4);
 		InetAddress inetAddress;
 		try {
-			inetAddress = InetAddress.getByName(ip);
-			DatagramPacket p = new DatagramPacket(bytes, bytes.length, inetAddress, port);
+			User.Router_Info router_info = User.default_gateway.get("192.168.1.1");
+			inetAddress = InetAddress.getByName(router_info.Router_IP);
+			DatagramPacket p = new DatagramPacket(toSend, toSend.length, inetAddress, router_info.Router_Port);
 			sendingSocket.send(p);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
+
+	/***
+	 *
+	 * @param ip
+	 * @return
+	 */
+	private byte[] ipToBytes(String ip) {
+		String[] splits = ip.split("\\.");
+		byte[] data = new byte[splits.length];
+		for (int i = 0; i < splits.length; i++) {
+			int v = Integer.parseInt(splits[i]);
+			if (v <= 127)
+				data[i] = (byte) v;
+			else
+				data[i] = (byte) (v - 256);
+
+		}
+		return data;
 	}
 
 	/***
