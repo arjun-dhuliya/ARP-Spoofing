@@ -349,7 +349,8 @@ public class ChatBox {
                         System.out.println("Received:\n"+pkt);
                     }else {
                         String msg;
-                        msg = bytesToIp(p.getData(), 1) + ": ";
+//                        msg = bytesToIp(p.getData(), 1) + ": ";
+						msg = "Friend: ";
                         msg += new String(p.getData(), 5, p.getLength() - 5);
                         updateMessagesText(msg);
                     }

@@ -140,7 +140,6 @@ public class Attacker {
                             p.setAddress(InetAddress.getByName(router_info.Router_IP));
                             p.setPort(router_info.Router_Port);
                             byte[] toSendData = p.getData();
-                            System.arraycopy(mainVictim.ip, 0,toSendData, 1,4);
                             if(new String(p.getData(),5,p.getLength()).toLowerCase().contains("bye")) {
                                 restore = true;
                                 ArpPacket init_pkt = new ArpPacket(new byte[6], mainVictim.ip);
