@@ -76,6 +76,7 @@ public class ArpPacket {
         return sb.toString();
     }
 
+
     /***
      * provided with a array convert to a hex string with '.' separation
      * @param bytes, byte array
