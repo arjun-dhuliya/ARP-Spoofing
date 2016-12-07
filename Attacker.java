@@ -139,17 +139,20 @@ public class Attacker {
                             User.Router_Info router_info = default_gateway.get("192.168.1.1");
                             p.setAddress(InetAddress.getByName(router_info.Router_IP));
                             p.setPort(router_info.Router_Port);
+                            byte[] toSendData = p.getData();
+                            System.arraycopy(mainVictim.ip, 0,toSendData, 1,4);
                             if(new String(p.getData(),5,p.getLength()).toLowerCase().contains("bye")) {
                                 restore = true;
                                 ArpPacket init_pkt = new ArpPacket(new byte[6], mainVictim.ip);
                                 init_pkt.PortNumber = mainVictim.port;
                                 byte[] byte_stream = ArpPacketAnalyzer.toBytes(init_pkt, 0);
-                                InetAddress inetAddress = InetAddress.getByName(Router_IP);
-                                DatagramPacket p = new DatagramPacket(byte_stream, byte_stream.length, inetAddress, Router_Port);
+                                InetAddress inetAddress = InetAddress.getByName(router_info.Router_IP);
+                                DatagramPacket p = new DatagramPacket(byte_stream, byte_stream.length, inetAddress, router_info.Router_Port);
                                 socket.send(p);
 
-                                init_pkt = new ArpPacket(new byte[6], ipToBytes(Router_IP));
+                                init_pkt = new ArpPacket(new byte[6], ipToBytes(router_info.Router_IP));
                                 init_pkt.PortNumber = Router_Port;
+                                init_pkt.TPA = ipToBytes(router_info.Router_IP);
                                 byte_stream = ArpPacketAnalyzer.toBytes(init_pkt, 0);
                                 inetAddress = InetAddress.getByName(bytesToIp(mainVictim.ip,0));
                                 p = new DatagramPacket(byte_stream, byte_stream.length, inetAddress, mainVictim.port);
