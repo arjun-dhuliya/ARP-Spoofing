@@ -33,18 +33,18 @@ public class Router {
 		Listen_socket = new DatagramSocket(7777);
 		Send_socket = new DatagramSocket();
 		IP_MAC_Port = new String[3];
-		System.out.println("Initializing Router!");
+		System.out.println("Initializing Router..");
 		try {
 			MAC_b = NetworkInterface.getByInetAddress(InetAddress.getLocalHost()).getHardwareAddress();
 			IP_MAC_Port[0] = InetAddress.getLocalHost().getHostAddress();
 			IP_MAC_Port[1] = ArpPacket.arrayToHexString(MAC_b, ':');
 			IP_MAC_Port[2] = Listen_socket.getLocalPort() + "";
-			System.out.println("\nIP, Port, MAC :" + IP_MAC_Port[0] + " " + IP_MAC_Port[2] + " " + IP_MAC_Port[1]);
+			System.out.println("IP, Port, MAC :" + IP_MAC_Port[0] + " " + IP_MAC_Port[2] + " " + IP_MAC_Port[1]);
 			IP_b = InetAddress.getLocalHost().getAddress();
 			IP = IP_MAC_Port[0];
 			MAC = IP_MAC_Port[1];
 			Port = IP_MAC_Port[2];
-			System.out.println("Initialized");
+			System.out.println("Router Ready!");
 		} catch (UnknownHostException e) {
 			Listen_socket.close();
 			e.printStackTrace();
@@ -53,7 +53,7 @@ public class Router {
 		ARP_IPs.put(IP_MAC_Port[0], "192.168.1.1");
 		Communicator router = new Communicator();
 		new Thread(router).start();
-		new Thread(new Runnable() {// Routing table printer
+		new Thread(new Runnable() {// ARP CACHE printer
 
 			@Override
 			public void run() {
@@ -65,7 +65,7 @@ public class Router {
 					}
 					if (ARP_TABLE.size() > 1) {
 						StringBuffer sb = new StringBuffer();
-						System.out.println("ROUTING TABLE: -");
+						System.out.println("ARP CACHE: -");
 						for (String key : ARP_TABLE.keySet()) {
 							String[] value = ARP_TABLE.get(key);
 							sb.append(key + " -- " + value[0] + " " + value[1] + " " + value[2] + "\n");
@@ -115,12 +115,19 @@ public class Router {
 	}
 
 	/***
-	 * This is the Listening
+	 * This is the Communicator thread which communicates with all 
 	 */
 	public static class Communicator implements Runnable {
 
 		Communicator() {
 			System.out.println("Listening for users..");
+			StringBuffer sb = new StringBuffer();
+			System.out.println("ARP CACHE: -");
+			for (String key : ARP_TABLE.keySet()) {
+				String[] value = ARP_TABLE.get(key);
+				sb.append(key + " -- " + value[0] + " " + value[1] + " " + value[2] + "\n");
+			}
+			System.out.println(sb.toString() + "\n");
 			// try {
 			// Thread.sleep(5000);
 			// } catch (InterruptedException e) {
@@ -159,6 +166,23 @@ public class Router {
 			}
 			return b_arr;
 		}
+		
+        /***
+        *
+        * @param data
+        * @param start
+        * @return
+        */
+       private String bytesToIp(byte[] data, int start) {
+           StringBuilder sb = new StringBuilder();
+           for (int i = start; i < start + 4; i++) {
+               if (data[i] > 0) sb.append(data[0]);
+               else sb.append((int)data[0]&0xFF);
+               sb.append('.');
+           }
+           sb.deleteCharAt(sb.length() - 1);
+           return sb.toString();
+       }
 
 		/***
 		 *
@@ -186,7 +210,7 @@ public class Router {
 								ARP_TABLE.put(k, IP_MAC_Port);
 								ARP_IPs.put(IP_MAC_Port[0], k);
 								StringBuffer sb = new StringBuffer();
-								System.out.println("Routing table updated..");
+								System.out.println("ARP CACHE updated..");
 								for (String key : ARP_TABLE.keySet()) {
 									String[] value = ARP_TABLE.get(key);
 									sb.append(key + " -- " + value[0] + " " + value[1] + " " + value[2] + "\n");
@@ -195,6 +219,7 @@ public class Router {
 								ArpPacket response = new ArpPacket();
 								response.THA = MAC_b;
 								response.TPA = IP_b;
+								response.SLPA = to_bytes(k, 4);
 								response.PortNumber = Integer.parseInt(Port);
 								sendMessage(response, IP_MAC_Port[0], IP_MAC_Port[2], 0);
 							} else {
@@ -205,11 +230,11 @@ public class Router {
 													// message
 							System.out.println("Received update request!");
 							ARP_TABLE.put(SLPA, IP_MAC_Port);
-							System.out.println("Table updated");
+							System.out.println("Cache updated");
 							System.out.println(ARP_IPs.toString());
 
 						} else if (data[0] == 2) {// Sending routing table
-							System.out.println("Sending routing table");
+							System.out.println("Sending ARP cache");
 							byte[] b = new byte[1];
 							b[0] = (byte) ARP_TABLE.size();
 							InetAddress inetAddress;
@@ -236,10 +261,17 @@ public class Router {
 						}
 					} else if (data[0] == 3) { // 0th byte for mode, 1-4 for
 												// receiver IP
-						String receiver_Local_IP = (int) data[1] + ".";
-						receiver_Local_IP = (int) data[2] + ".";
-						receiver_Local_IP = (int) data[3] + ".";
-						receiver_Local_IP = (int) data[4] + "";
+						String sender = p.getAddress().getHostAddress();
+						String sender_IP = ARP_IPs.get(sender);
+						String receiver_Local_IP = (int) (data[1]&0xFF) + ".";
+						receiver_Local_IP += (int) (data[2]&0xFF) + ".";
+						receiver_Local_IP += (int) (data[3]&0xFF) + ".";
+						receiver_Local_IP += (int) (data[4]&0xFF) + "";
+						int ind = 1;
+						for(byte b:to_bytes(sender_IP, 4)){
+							data[ind] = b;
+							ind++;
+						}
 						System.out.println("Received msg for " + receiver_Local_IP);
 						String[] entry = ARP_TABLE.get(receiver_Local_IP);
 						byte[] data_for_dest = new byte[data.length - 5];
@@ -248,10 +280,11 @@ public class Router {
 						}
 						try {
 							InetAddress Dest_IP = InetAddress.getByName(entry[0]);
-							Send_socket.send(new DatagramPacket(data_for_dest, data_for_dest.length, Dest_IP,
+							Send_socket.send(new DatagramPacket(data, data.length, Dest_IP,
 									Integer.parseInt(entry[2])));
 						} catch (Exception e) {
-							System.out.println(e);
+							System.out.println(entry[0]);
+							e.printStackTrace();;
 						}
 						System.out.println("Sent msg to " + receiver_Local_IP);
 					}
