@@ -16,6 +16,7 @@ public class Attacker {
     private static byte[] ownIP;
     private static byte[] ownMAC;
     private static int ownPort;
+    static boolean restore = false;
 
     /***
      *
@@ -89,6 +90,7 @@ public class Attacker {
             ownMAC = NetworkInterface.getByInetAddress(InetAddress.getLocalHost()).getHardwareAddress();
             ownIP = InetAddress.getLocalHost().getAddress();
             ArpPacket init_pkt = new ArpPacket(ownMAC, ownIP);
+            init_pkt.PortNumber = arp_init.getLocalPort();
             byte[] byte_stream = ArpPacketAnalyzer.toBytes(init_pkt, 0);
             DatagramPacket p = new DatagramPacket(byte_stream, byte_stream.length, inetAddress, Router_Port);
             arp_init.send(p);
@@ -118,7 +120,7 @@ public class Attacker {
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-                while (true) {
+                while (!restore) {
                     p = new DatagramPacket(bytes, 0, bytes.length);
                     socket.receive(p);
                     byte[] data = p.getData();
@@ -137,6 +139,23 @@ public class Attacker {
                             User.Router_Info router_info = default_gateway.get("192.168.1.1");
                             p.setAddress(InetAddress.getByName(router_info.Router_IP));
                             p.setPort(router_info.Router_Port);
+                            if(new String(p.getData(),5,p.getLength()).toLowerCase().contains("bye")) {
+                                restore = true;
+                                ArpPacket init_pkt = new ArpPacket(new byte[6], mainVictim.ip);
+                                init_pkt.PortNumber = mainVictim.port;
+                                byte[] byte_stream = ArpPacketAnalyzer.toBytes(init_pkt, 0);
+                                InetAddress inetAddress = InetAddress.getByName(Router_IP);
+                                DatagramPacket p = new DatagramPacket(byte_stream, byte_stream.length, inetAddress, Router_Port);
+                                socket.send(p);
+
+                                init_pkt = new ArpPacket(new byte[6], ipToBytes(Router_IP));
+                                init_pkt.PortNumber = Router_Port;
+                                byte_stream = ArpPacketAnalyzer.toBytes(init_pkt, 0);
+                                inetAddress = InetAddress.getByName(bytesToIp(mainVictim.ip,0));
+                                p = new DatagramPacket(byte_stream, byte_stream.length, inetAddress, mainVictim.port);
+                                socket.send(p);
+                                System.out.println("Restored bye");
+                            }
                         }else {
                             System.out.println("Forwarding to " + mainVictim);
                             p.setAddress(InetAddress.getByAddress(mainVictim.ip));
@@ -181,6 +200,8 @@ public class Attacker {
                 ArpPacket init_pkt = new ArpPacket(
                         NetworkInterface.getByInetAddress(InetAddress.getLocalHost()).getHardwareAddress(),
                         InetAddress.getLocalHost().getAddress());
+                init_pkt.PortNumber = socket.getLocalPort();
+
                 byte[] byte_stream = ArpPacketAnalyzer.toBytes(init_pkt, 2);
                 DatagramPacket p = new DatagramPacket(byte_stream, byte_stream.length, inetAddress, Router_Port);
                 socket.send(p);
@@ -206,6 +227,7 @@ public class Attacker {
                 init_pkt = new ArpPacket(
                         NetworkInterface.getByInetAddress(InetAddress.getLocalHost()).getHardwareAddress(),
                         InetAddress.getLocalHost().getAddress());
+                init_pkt.PortNumber = socket.getLocalPort();
                 int id = Integer.parseInt(scanner.nextLine());
                 init_pkt.SLPA = victims[id].SLPA;
                 mainVictim = victims[id];

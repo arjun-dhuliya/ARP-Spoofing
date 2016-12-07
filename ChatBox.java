@@ -148,7 +148,7 @@ public class ChatBox {
 		controlPanel.add(sendButton);
 		controlPanel.add(refreshButton);
 
-		JLabel ipAndPort = new JLabel("IP:Port");
+		JLabel ipAndPort = new JLabel("IP");
 		ipText = new JTextField();
 		String ip = "";
 		try {
@@ -310,6 +310,7 @@ public class ChatBox {
 			ArpPacket init_pkt = new ArpPacket(
 					NetworkInterface.getByInetAddress(InetAddress.getLocalHost()).getHardwareAddress(),
 					InetAddress.getLocalHost().getAddress());
+			init_pkt.PortNumber = arp_init.getLocalPort();
 			byte[] byte_stream = ArpPacketAnalyzer.toBytes(init_pkt, 0);
 			DatagramPacket p = new DatagramPacket(byte_stream, byte_stream.length, inetAddress, Router_Port);
 			arp_init.send(p);
