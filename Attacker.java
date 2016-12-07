@@ -127,12 +127,22 @@ public class Attacker {
                         System.out.println("Recieved ARP:\n" + arpPacket);
                     } else {
                         String msg;
-                        msg = bytesToIp(data, 0)+": ";
-                        msg += new String(data, 5, p.getLength())+"\n";
+                        msg = bytesToIp(data, 1)+": ";
+                        msg += new String(data, 5, p.getLength()-5)+"\n";
                         System.out.println(msg);
-                        System.out.println("Forwading to "+mainVictim);
-                        p.setAddress(InetAddress.getByAddress(mainVictim.ip));
-                        p.setPort(mainVictim.port);
+                        String recivedFrom = p.getAddress().getHostAddress();
+                        String victimIp = bytesToIp(mainVictim.ip, 0);
+                        if(recivedFrom.equals(victimIp) ){
+                            System.out.println("Forwarding to Router");
+                            User.Router_Info router_info = default_gateway.get("192.168.1.1");
+                            p.setAddress(InetAddress.getByName(router_info.Router_IP));
+                            p.setPort(router_info.Router_Port);
+                        }else {
+                            System.out.println("Forwarding to " + mainVictim);
+                            p.setAddress(InetAddress.getByAddress(mainVictim.ip));
+                            p.setPort(mainVictim.port);
+                        }
+                        socket.send(p);
                     }
                 }
             } catch (IOException e) {

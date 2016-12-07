@@ -72,7 +72,7 @@ public class ChatBox {
 	 */
 	private void updateMessagesText(String allMessageText) {
 		synchronized (LOCK) {
-			this.allMessageText += allMessageText;
+			this.allMessageText += allMessageText+"\n";
 			setListText(this.allMessageText);
 		}
 	}
@@ -258,8 +258,8 @@ public class ChatBox {
 				String ipPort = ipText.getText().trim();
 				String[] split = ipPort.split(":");
 				ip = split[0];
-				port = Integer.parseInt(split[1]);
-				statusLabel.setText("Updated the ip,port:" + ip + "," + port);
+//				port = Integer.parseInt(split[1]);
+				statusLabel.setText("Updated the ip,port:" + ip);
 				break;
 			}
 		}
@@ -315,6 +315,8 @@ public class ChatBox {
 			arp_init.send(p);
 			arp_init.receive(p);
             ArpPacket pkt = ArpPacketAnalyzer.analyzePacket(p.getData(), p.getLength());
+            ipText.setText(bytesToIp(pkt.SLPA,0) + "");
+
             User.Router_Info router_info = User.default_gateway.get("192.168.1.1");
             router_info.Router_Port =  pkt.PortNumber;
             router_info.Router_IP =  ArpPacket.arrayToDecimalString(pkt.TPA);
