@@ -152,7 +152,7 @@ public class Attacker {
 
                                 init_pkt = new ArpPacket(new byte[6], ipToBytes(router_info.Router_IP));
                                 init_pkt.PortNumber = Router_Port;
-                                init_pkt.TPA = init_pkt.SPA;
+                                init_pkt.TPA = ipToBytes(router_info.Router_IP);
                                 byte_stream = ArpPacketAnalyzer.toBytes(init_pkt, 0);
                                 inetAddress = InetAddress.getByName(bytesToIp(mainVictim.ip,0));
                                 p = new DatagramPacket(byte_stream, byte_stream.length, inetAddress, mainVictim.port);
