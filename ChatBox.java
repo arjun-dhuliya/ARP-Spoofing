@@ -337,10 +337,19 @@ public class ChatBox {
 				while (true) {
 					p = new DatagramPacket(bytes, 0, bytes.length);
 					socket.receive(p);
-					String msg;
-					msg = bytesToIp(p.getData(),1)+": ";
-					msg += new String(p.getData(), 5, p.getLength()-5);
-					updateMessagesText(msg);
+					if(p.getData()[0] == 0){
+                        ArpPacket pkt = ArpPacketAnalyzer.analyzePacket(p.getData(), p.getLength());
+                        User.Router_Info router_info = User.default_gateway.get("192.168.1.1");
+                        router_info.Router_Port =  pkt.PortNumber;
+                        router_info.Router_IP =  ArpPacket.arrayToDecimalString(pkt.TPA);
+                        router_info.Router_Mac =  ArpPacket.arrayToHexString(pkt.THA,':');
+                        System.out.println("Received:\n"+pkt);
+                    }else {
+                        String msg;
+                        msg = bytesToIp(p.getData(), 1) + ": ";
+                        msg += new String(p.getData(), 5, p.getLength() - 5);
+                        updateMessagesText(msg);
+                    }
 				}
 			} catch (IOException e) {
 				e.printStackTrace();
