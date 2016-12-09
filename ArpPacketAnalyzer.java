@@ -52,7 +52,8 @@ class ArpPacketAnalyzer {
         current = storeIntoArray(data, obj.THA, current);
         current = storeIntoArray(data, obj.TPA, current);
         data[current++] = (byte) ((obj.PortNumber >> 8) & 0xFF);
-        data[current] = (byte) (obj.PortNumber & 0xFF);
+        data[current++] = (byte) (obj.PortNumber & 0xFF);
+        storeIntoArray(data, obj.SLPA, current);
         return data;
     }
 
