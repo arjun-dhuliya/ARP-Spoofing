@@ -1,7 +1,7 @@
 import java.util.HashMap;
 
 /***
- * class representation of a ARP User, it uses chatbox application to chat with other users in virtual sub network
+ * class representation of a ARP User, it uses chat box application to chat with other users in virtual sub network
  */
 public class User {
 

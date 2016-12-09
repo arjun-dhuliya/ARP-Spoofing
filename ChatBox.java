@@ -110,7 +110,7 @@ class ChatBox {
     }
 
     /***
-     * sets buttons and event hanclers
+     * sets buttons and event handlers
      */
     private void setButtonsAndEvents() {
         headerLabel.setText("Messages");
