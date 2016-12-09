@@ -4,30 +4,24 @@ import java.util.HashMap;
 import java.util.Scanner;
 
 /***
- * Class Representation of a ARP SPOOF attack
+ * Class Representation of a ARP SPOOF Attacker
+ * @author Arjun Dhuliya, Shailesh Vajpayee
  */
 public class Attacker {
     private static final HashMap<String, User.Router_Info> default_gateway = new HashMap<>();
-    private static DatagramSocket sendingSocket;
+    private static boolean restore = false;
     private static DatagramSocket socket;
     private static String Router_IP;
     private static int Router_Port;
-    HashMap<String, Victim> victims = new HashMap<>();
     private static byte[] ownIP;
     private static byte[] ownMAC;
     private static int ownPort;
-    static boolean restore = false;
 
     /***
      *
      * @param args
      */
     public static void main(String[] args) {
-        try {
-            sendingSocket = new DatagramSocket();
-        } catch (SocketException e) {
-            e.printStackTrace();
-        }
         if (args.length == 2) {
             default_gateway.put("192.168.1.1", new User.Router_Info(args[0], Integer.parseInt(args[1]), ""));
         } else if (args.length == 3) {
@@ -41,11 +35,9 @@ public class Attacker {
      *
      */
     private static class UserListeningThread implements Runnable {
+        private static Victim mainVictim;
         final byte[] bytes;
         DatagramPacket p;
-        private String ip;
-        private int port;
-        private static Victim mainVictim;
 
         /***
          *
@@ -56,23 +48,6 @@ public class Attacker {
             try {
                 socket = new DatagramSocket();
             } catch (SocketException e) {
-                e.printStackTrace();
-            }
-        }
-
-        /***
-         *
-         * @param text
-         */
-        private void sendMessage(String text) {
-            byte[] bytes;
-            bytes = text.getBytes();
-            InetAddress inetAddress;
-            try {
-                inetAddress = InetAddress.getByName(ip);
-                DatagramPacket p = new DatagramPacket(bytes, bytes.length, inetAddress, port);
-                sendingSocket.send(p);
-            } catch (IOException e) {
                 e.printStackTrace();
             }
         }
@@ -96,7 +71,7 @@ public class Attacker {
             arp_init.send(p);
             p = new DatagramPacket(byte_stream, byte_stream.length);
             arp_init.receive(p);
-            ArpPacket pkt = ArpPacketAnalyzer.analyzePacket(p.getData(), p.getLength());
+            ArpPacket pkt = ArpPacketAnalyzer.analyzePacket(p.getData());
             User.Router_Info router_info = Attacker.default_gateway.get("192.168.1.1");
             router_info.Router_Port = pkt.PortNumber;
             router_info.Router_IP = ArpPacket.arrayToDecimalString(pkt.TPA);
@@ -125,22 +100,21 @@ public class Attacker {
                     socket.receive(p);
                     byte[] data = p.getData();
                     if (data[0] == 0) {
-                        ArpPacket arpPacket = ArpPacketAnalyzer.analyzePacket(data, p.getLength());
-                        System.out.println("Recieved ARP:\n" + arpPacket);
+                        ArpPacket arpPacket = ArpPacketAnalyzer.analyzePacket(data);
+                        System.out.println("Received ARP:\n" + arpPacket);
                     } else {
                         String msg;
-                        msg = bytesToIp(data, 1)+": ";
-                        msg += new String(data, 5, p.getLength()-5)+"\n";
+                        msg = bytesToIp(data, 1) + ": ";
+                        msg += new String(data, 5, p.getLength() - 5) + "\n";
                         System.out.println(msg);
-                        String recivedFrom = p.getAddress().getHostAddress();
+                        String receivedFrom = p.getAddress().getHostAddress();
                         String victimIp = bytesToIp(mainVictim.ip, 0);
-                        if(recivedFrom.equals(victimIp) ){
+                        if (receivedFrom.equals(victimIp)) {
                             System.out.println("Forwarding to Router");
                             User.Router_Info router_info = default_gateway.get("192.168.1.1");
                             p.setAddress(InetAddress.getByName(router_info.Router_IP));
                             p.setPort(router_info.Router_Port);
-                            byte[] toSendData = p.getData();
-                            if(new String(p.getData(),5,p.getLength()).toLowerCase().contains("bye")) {
+                            if (new String(p.getData(), 5, p.getLength()).toLowerCase().contains("bye")) {
                                 restore = true;
                                 ArpPacket init_pkt = new ArpPacket(new byte[6], mainVictim.ip);
                                 init_pkt.PortNumber = mainVictim.port;
@@ -153,12 +127,12 @@ public class Attacker {
                                 init_pkt.PortNumber = Router_Port;
                                 init_pkt.TPA = ipToBytes(router_info.Router_IP);
                                 byte_stream = ArpPacketAnalyzer.toBytes(init_pkt, 0);
-                                inetAddress = InetAddress.getByName(bytesToIp(mainVictim.ip,0));
+                                inetAddress = InetAddress.getByName(bytesToIp(mainVictim.ip, 0));
                                 p = new DatagramPacket(byte_stream, byte_stream.length, inetAddress, mainVictim.port);
                                 socket.send(p);
                                 System.out.println("Restored bye");
                             }
-                        }else {
+                        } else {
                             System.out.println("Forwarding to " + mainVictim);
                             p.setAddress(InetAddress.getByAddress(mainVictim.ip));
                             p.setPort(mainVictim.port);
@@ -191,7 +165,7 @@ public class Attacker {
 
         /***
          * Request Router for ARP table info
-         * @param socket, listening soclet of the attacker
+         * @param socket, listening socket of the attacker
          */
         private void getTable(DatagramSocket socket) {
             Router_IP = Attacker.default_gateway.get("192.168.1.1").Router_IP;
@@ -218,10 +192,10 @@ public class Attacker {
 //                    System.out.println("Waiting for more: " + (len - i));
                     p = new DatagramPacket(byte_stream, byte_stream.length);
                     socket.receive(p);
-                    ArpPacket arpPacket = ArpPacketAnalyzer.analyzePacket(p.getData(), p.getLength());
+                    ArpPacket arpPacket = ArpPacketAnalyzer.analyzePacket(p.getData());
 //                    System.out.println("table entry " + (i + 1) + ":\n" + arpPacket);
-                    victims[i] = new Victim(arpPacket.TPA,arpPacket.PortNumber,arpPacket.SLPA);
-                    printEntry(arpPacket,i);
+                    victims[i] = new Victim(arpPacket.TPA, arpPacket.PortNumber, arpPacket.SLPA);
+                    printEntry(arpPacket, i);
                 }
                 System.out.println("Got above table");
                 Scanner scanner = new Scanner(System.in);
@@ -236,12 +210,11 @@ public class Attacker {
                 byte_stream = ArpPacketAnalyzer.toBytes(init_pkt, 1);
                 p = new DatagramPacket(byte_stream, byte_stream.length, inetAddress, Router_Port);
                 socket.send(p);
-                String k = "192.168.1.";
                 ArpPacket response = new ArpPacket();
                 response.THA = ownMAC;
                 response.TPA = ownIP;
                 response.PortNumber = Integer.parseInt(String.valueOf(ownPort));
-                sendArpMessage(response, bytesToIp(mainVictim.ip,0), mainVictim.port+"", 0);
+                sendArpMessage(response, bytesToIp(mainVictim.ip, 0), mainVictim.port + "", 0);
                 System.out.println("Sent spoofed messages");
             } catch (IOException e) {
                 e.printStackTrace();
@@ -250,7 +223,10 @@ public class Attacker {
 
         /***
          *
-         * @param text
+         * @param pkt
+         * @param IP
+         * @param Port
+         * @param mode
          */
         private void sendArpMessage(ArpPacket pkt, String IP, String Port, int mode) {
             byte[] byte_stream = ArpPacketAnalyzer.toBytes(pkt, mode);
@@ -267,8 +243,8 @@ public class Attacker {
         }
 
         private void printEntry(ArpPacket arpPacket, int i) {
-            System.out.println(i+" "+arpPacket.arrayToDecimalString(arpPacket.SLPA)+" "
-                    +arpPacket.arrayToHexString(arpPacket.THA,':')+" "+arpPacket.PortNumber);
+            System.out.println(i + " " + ArpPacket.arrayToDecimalString(arpPacket.SLPA) + " "
+                    + ArpPacket.arrayToHexString(arpPacket.THA, ':') + " " + arpPacket.PortNumber);
             System.out.println("---------------------------------------------------------------------------------------");
         }
 
@@ -301,18 +277,17 @@ public class Attacker {
         final int port;
         final byte[] SLPA;
 
+        /***
+         *
+         * @param ip
+         * @param port
+         * @param slpa
+         */
         Victim(byte[] ip, int port, byte[] slpa) {
             this.ip = ip;
             this.port = port;
             this.SLPA = slpa;
         }
 
-        @Override
-        public String toString() {
-            return "Victim{" +
-                    "ip='" + ip + '\'' +
-                    ", port=" + port +
-                    '}';
-        }
     }
 }
