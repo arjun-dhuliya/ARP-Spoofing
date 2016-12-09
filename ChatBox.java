@@ -29,7 +29,7 @@ class ChatBox {
 
 
     /***
-     *
+     * Constructor
      */
     ChatBox() {
         allMessageText = "";
@@ -45,8 +45,8 @@ class ChatBox {
 
 
     /***
-     *
-     * @param allMessageText
+     * updates text filed appending text as new line
+     * @param allMessageText, text to append
      */
     private void updateMessagesText(String allMessageText) {
         synchronized (LOCK) {
@@ -56,8 +56,8 @@ class ChatBox {
     }
 
     /***
-     *
-     * @param allMessageText
+     * set messages
+     * @param allMessageText, message text
      */
     private void setListText(String allMessageText) {
         synchronized (LOCK) {
@@ -66,7 +66,7 @@ class ChatBox {
     }
 
     /***
-     *
+     * init the GUI elements
      */
     private void initGUI() {
         mainFrame = new JFrame("Chat Box");
@@ -110,7 +110,7 @@ class ChatBox {
     }
 
     /***
-     *
+     * sets buttons and event hanclers
      */
     private void setButtonsAndEvents() {
         headerLabel.setText("Messages");
@@ -148,8 +148,8 @@ class ChatBox {
     }
 
     /***
-     *
-     * @param text
+     * send text message
+     * @param text, text message
      */
     private void sendMessage(String text) {
         byte[] bytes;
@@ -171,9 +171,9 @@ class ChatBox {
     }
 
     /***
-     *
-     * @param data
-     * @return
+     * Converts bytes to ip
+     * @param data, byte of ip
+     * @return string ip
      */
     private String bytesToIp(byte[] data) {
         StringBuilder sb = new StringBuilder();
@@ -187,9 +187,9 @@ class ChatBox {
     }
 
     /***
-     *
-     * @param ip
-     * @return
+     * converts ip to bytes
+     * @param ip, string ip
+     * @return byte array ip
      */
     private byte[] ipToBytes(String ip) {
         String[] splits = ip.split("\\.");
@@ -206,7 +206,7 @@ class ChatBox {
     }
 
     /***
-     *
+     * button listener
      */
     private class ButtonClickListener implements ActionListener {
         public void actionPerformed(ActionEvent e) {
@@ -242,7 +242,7 @@ class ChatBox {
     }
 
     /***
-     *
+     * User listening thread enables user to listen for packets
      */
     private class UserListeningThread implements Runnable {
         final byte[] bytes;
@@ -250,7 +250,7 @@ class ChatBox {
         DatagramSocket socket;
 
         /***
-         *
+         * Constructor
          */
         UserListeningThread() {
             bytes = new byte[1024];
@@ -265,21 +265,21 @@ class ChatBox {
         /***
          * 0:initial_msg 1:send_arp_msg 2:send_usr_msg
          *
-         * @param arp_init
-         * @throws Exception
+         * @param socket, socket
+         * @throws Exception, IO Exception
          */
-        void send_arp_init_msg(DatagramSocket arp_init) throws Exception {
+        void send_arp_init_msg(DatagramSocket socket) throws Exception {
             String router_IP = User.default_gateway.get("192.168.1.1").Router_IP;
             int router_Port = User.default_gateway.get("192.168.1.1").Router_Port;
             InetAddress inetAddress = InetAddress.getByName(router_IP);
             ArpPacket init_pkt = new ArpPacket(
                     NetworkInterface.getByInetAddress(InetAddress.getLocalHost()).getHardwareAddress(),
                     InetAddress.getLocalHost().getAddress());
-            init_pkt.PortNumber = arp_init.getLocalPort();
+            init_pkt.PortNumber = socket.getLocalPort();
             byte[] byte_stream = ArpPacketAnalyzer.toBytes(init_pkt, 0);
             DatagramPacket p = new DatagramPacket(byte_stream, byte_stream.length, inetAddress, router_Port);
-            arp_init.send(p);
-            arp_init.receive(p);
+            socket.send(p);
+            socket.receive(p);
             ArpPacket pkt = ArpPacketAnalyzer.analyzePacket(p.getData());
             ipText.setText(bytesToIp(pkt.SLPA) + "");
 
@@ -291,7 +291,7 @@ class ChatBox {
         }
 
         /***
-         *
+         * run method of thread
          */
         @Override
         public void run() {

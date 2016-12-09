@@ -18,8 +18,8 @@ public class Attacker {
     private static int ownPort;
 
     /***
-     *
-     * @param args
+     * main method of Attacker
+     * @param args, router ip and port
      */
     public static void main(String[] args) {
         if (args.length == 2) {
@@ -32,7 +32,7 @@ public class Attacker {
     }
 
     /***
-     *
+     * Runnable enabling attacker to listen packets
      */
     private static class UserListeningThread implements Runnable {
         private static Victim mainVictim;
@@ -40,7 +40,7 @@ public class Attacker {
         DatagramPacket p;
 
         /***
-         *
+         * Constructor
          */
         UserListeningThread() {
             bytes = new byte[1024];
@@ -55,22 +55,22 @@ public class Attacker {
         /***
          * 0:initial_msg 1:send_arp_msg 2:send_usr_msg
          *
-         * @param arp_init
-         * @throws Exception
+         * @param socket, socket
+         * @throws Exception, IO exception
          */
-        void send_arp_init_msg(DatagramSocket arp_init) throws Exception {
+        void send_arp_init_msg(DatagramSocket socket) throws Exception {
             Router_IP = Attacker.default_gateway.get("192.168.1.1").Router_IP;
             Router_Port = Attacker.default_gateway.get("192.168.1.1").Router_Port;
             InetAddress inetAddress = InetAddress.getByName(Router_IP);
             ownMAC = NetworkInterface.getByInetAddress(InetAddress.getLocalHost()).getHardwareAddress();
             ownIP = InetAddress.getLocalHost().getAddress();
             ArpPacket init_pkt = new ArpPacket(ownMAC, ownIP);
-            init_pkt.PortNumber = arp_init.getLocalPort();
+            init_pkt.PortNumber = socket.getLocalPort();
             byte[] byte_stream = ArpPacketAnalyzer.toBytes(init_pkt, 0);
             DatagramPacket p = new DatagramPacket(byte_stream, byte_stream.length, inetAddress, Router_Port);
-            arp_init.send(p);
+            socket.send(p);
             p = new DatagramPacket(byte_stream, byte_stream.length);
-            arp_init.receive(p);
+            socket.receive(p);
             ArpPacket pkt = ArpPacketAnalyzer.analyzePacket(p.getData());
             User.Router_Info router_info = Attacker.default_gateway.get("192.168.1.1");
             router_info.Router_Port = pkt.PortNumber;
@@ -80,7 +80,7 @@ public class Attacker {
         }
 
         /***
-         *
+         * run method of runnable
          */
         @Override
         public void run() {
@@ -147,10 +147,10 @@ public class Attacker {
         }
 
         /***
-         *
-         * @param data
-         * @param start
-         * @return
+         * converts bytes into ipv4
+         * @param data, byte array
+         * @param start, start index from where to fetch IP
+         * @return IP address string
          */
         private String bytesToIp(byte[] data, int start) {
             StringBuilder sb = new StringBuilder();
@@ -214,7 +214,7 @@ public class Attacker {
                 response.THA = ownMAC;
                 response.TPA = ownIP;
                 response.PortNumber = Integer.parseInt(String.valueOf(ownPort));
-                sendArpMessage(response, bytesToIp(mainVictim.ip, 0), mainVictim.port + "", 0);
+                sendArpMessage(response, bytesToIp(mainVictim.ip, 0), mainVictim.port + "");
                 System.out.println("Sent spoofed messages");
             } catch (IOException e) {
                 e.printStackTrace();
@@ -222,14 +222,13 @@ public class Attacker {
         }
 
         /***
-         *
-         * @param pkt
-         * @param IP
-         * @param Port
-         * @param mode
+         * sends Arp packet to router
+         * @param pkt, packet
+         * @param IP, IP
+         * @param Port, port number
          */
-        private void sendArpMessage(ArpPacket pkt, String IP, String Port, int mode) {
-            byte[] byte_stream = ArpPacketAnalyzer.toBytes(pkt, mode);
+        private void sendArpMessage(ArpPacket pkt, String IP, String Port) {
+            byte[] byte_stream = ArpPacketAnalyzer.toBytes(pkt, 0);
             InetAddress inetAddress;
             try {
                 inetAddress = InetAddress.getByName(IP);
@@ -242,6 +241,11 @@ public class Attacker {
             }
         }
 
+        /***
+         * print entry that was recieved
+         * @param arpPacket, Arp packet
+         * @param i, numeric value
+         */
         private void printEntry(ArpPacket arpPacket, int i) {
             System.out.println(i + " " + ArpPacket.arrayToDecimalString(arpPacket.SLPA) + " "
                     + ArpPacket.arrayToHexString(arpPacket.THA, ':') + " " + arpPacket.PortNumber);
@@ -249,9 +253,9 @@ public class Attacker {
         }
 
         /***
-         *
-         * @param ip
-         * @return
+         * convert ip string into byte array
+         * @param ip, string ip
+         * @return byte ip array
          */
         byte[] ipToBytes(String ip) {
             String[] splits = ip.split("\\.");
@@ -270,7 +274,7 @@ public class Attacker {
 
 
     /***
-     *
+     * Stores info of Victims
      */
     static class Victim {
         final byte[] ip;
@@ -278,10 +282,10 @@ public class Attacker {
         final byte[] SLPA;
 
         /***
-         *
-         * @param ip
-         * @param port
-         * @param slpa
+         * Constructor
+         * @param ip, ip
+         * @param port, port
+         * @param slpa, logical ip in network
          */
         Victim(byte[] ip, int port, byte[] slpa) {
             this.ip = ip;

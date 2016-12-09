@@ -68,8 +68,6 @@ public class Router {
 
         Thread updater = new Thread(new Runnable() {
 
-            final DatagramSocket updater_socket = new DatagramSocket();
-
             @Override
             public void run() {
                 while (true) {
@@ -109,11 +107,11 @@ public class Router {
         }
 
         /***
-         *
-         * @param pkt
-         * @param IP
-         * @param Port
-         * @param mode
+         * sends Arp message
+         * @param pkt, ArpPacket to send
+         * @param IP, Ip to send
+         * @param Port, port number
+         * @param mode, mode in which to send
          */
         private void sendMessage(ArpPacket pkt, String IP, String Port, int mode) {
             byte[] byte_stream = ArpPacketAnalyzer.toBytes(pkt, mode);
@@ -129,6 +127,11 @@ public class Router {
             }
         }
 
+        /***
+         * converts ip to bytes
+         * @param IP, string ip
+         * @return byte array ip
+         */
         private byte[] to_bytes(String IP, int length) {
             int ind = 0;
             byte[] b_arr = new byte[length];

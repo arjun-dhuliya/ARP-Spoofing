@@ -2,7 +2,7 @@
  * ARP Packet class representation
  * @author Arjun Dhuliya, Shailesh Vajpayee
  */
-public class ArpPacket {
+class ArpPacket {
     int hardwareType;               //hardware type field of Arp Packet
     int protocolType;               //protocol type field of Arp Packet
     int hardwareAddressLength;      //hardware Address length field of Arp Packet

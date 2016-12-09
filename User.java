@@ -32,7 +32,7 @@ public class User {
         String Router_Mac;
 
         /***
-         *
+         * Constructor
          * @param router_IP, ip
          * @param router_Port, port
          * @param router_Mac, mac address

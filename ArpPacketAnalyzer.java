@@ -5,9 +5,9 @@
 class ArpPacketAnalyzer {
 
     /***
-     *
-     * @param bytes
-     * @return
+     * Analyzes bytes to create an ARP PACKET Object
+     * @param bytes, bytes of data
+     * @return ArpPacket object
      */
     static ArpPacket analyzePacket(byte[] bytes) {
         ArpPacket info = new ArpPacket();
@@ -31,9 +31,9 @@ class ArpPacketAnalyzer {
     }
 
     /***
-     *
-     * @param obj
-     * @return
+     * create a byte array of ArpPacket
+     * @param obj, ArpPacket
+     * @return byte array
      */
     static byte[] toBytes(ArpPacket obj, int mode) {
         byte[] data = new byte[35];
@@ -52,16 +52,16 @@ class ArpPacketAnalyzer {
         current = storeIntoArray(data, obj.THA, current);
         current = storeIntoArray(data, obj.TPA, current);
         data[current++] = (byte) ((obj.PortNumber >> 8) & 0xFF);
-        data[current++] = (byte) (obj.PortNumber & 0xFF);
+        data[current] = (byte) (obj.PortNumber & 0xFF);
         return data;
     }
 
     /***
-     *
-     * @param data
-     * @param source
-     * @param from
-     * @return
+     * store byte array inside another byte array
+     * @param data, destination array
+     * @param source, source array
+     * @param from, from which index in destination we should start copying
+     * @return index of next index that should be used
      */
     private static int storeIntoArray(byte[] data, byte[] source, int from) {
         System.arraycopy(source, 0, data, from, source.length);
